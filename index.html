@@ -2,279 +2,210 @@
 <html lang="ku" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Dîjîtal Kurdistan • Meta Kurdistan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Meta Kurdistan • Dîjîtal Welat</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.min.js"></script>
   <style>
     :root {
-      --bg: #0f172a;
       --accent: #dc2626;
       --accent-dark: #b91c1c;
+      --bg: #0f172a;
       --card: #1e293b;
       --text: #e2e8f0;
-      --text-soft: #94a3b8;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; overflow:hidden; font-family:system-ui, sans-serif; background:var(--bg); color:var(--text); }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 20px); /* iPhone üst notch/status bar için ~20-44px */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
+
+    #canvas { position:fixed; inset:0; z-index:1; }
 
     header {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      padding: 14px 16px;
-      border-bottom: 1px solid #334155;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .top-bar {
+      position: absolute;
+      top: env(safe-area-inset-top, 20px);
+      left: 16px; right:16px;
+      z-index: 10;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      pointer-events: none;
     }
 
     .logo {
-      font-size: 1.35rem;
+      font-size: 1.5rem;
       font-weight: 800;
       color: var(--accent);
-      letter-spacing: -0.5px;
+      text-shadow: 0 0 10px rgba(220,38,38,0.7);
+      pointer-events: auto;
     }
 
     .wallet-btn {
-      background: var(--accent);
+      background: rgba(220,38,38,0.9);
       color: white;
       border: none;
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
       font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-
-    .wallet-btn:hover {
-      background: var(--accent-dark);
-    }
-
-    main {
-      padding: 16px;
-      padding-bottom: 90px;
-    }
-
-    .map-container {
-      height: 220px;
-      background: #111827;
-      border-radius: 16px;
-      overflow: hidden;
-      margin-bottom: 24px;
-      position: relative;
-      border: 1px solid #334155;
-    }
-
-    .map-placeholder {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, #1e293b, #334155);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      color: var(--text-soft);
-      text-align: center;
-      padding: 20px;
-    }
-
-    .stats-bar {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 12px 10px;
-      text-align: center;
-      border: 1px solid #475569;
-    }
-
-    .stat-number {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .stat-label {
-      font-size: 0.78rem;
-      color: var(--text-soft);
-      margin-top: 4px;
-    }
-
-    h2.section-title {
-      font-size: 1.3rem;
-      margin: 24px 0 14px;
-      color: #cbd5e1;
-      font-weight: 700;
-    }
-
-    .ministries-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .ministry-card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      border: 1px solid #475569;
-      transition: all 0.15s;
-      cursor: pointer;
-    }
-
-    .ministry-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .ministry-icon {
-      font-size: 2.1rem;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .ministry-name {
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .ministry-desc {
-      font-size: 0.82rem;
-      color: var(--text-soft);
-      line-height: 1.35;
+      backdrop-filter: blur(6px);
+      pointer-events: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
     .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--card);
+      position: absolute;
+      bottom: env(safe-area-inset-bottom, 0);
+      left:0; right:0;
+      background: rgba(30,41,59,0.7);
+      backdrop-filter: blur(10px);
       border-top: 1px solid #334155;
-      padding: 10px 16px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-around;
-      z-index: 100;
+      z-index: 10;
     }
 
     .nav-item {
       text-align: center;
-      color: var(--text-soft);
-      font-size: 0.75rem;
+      color: var(--text);
+      font-size: 0.8rem;
       font-weight: 500;
+      opacity: 0.8;
     }
 
-    .nav-item.active {
-      color: var(--accent);
-    }
+    .nav-item.active { color: var(--accent); opacity:1; }
 
-    .nav-icon {
-      font-size: 1.6rem;
-      margin-bottom: 4px;
+    .nav-icon { font-size: 1.8rem; margin-bottom: 4px; }
+
+    .info-overlay {
+      position: absolute;
+      bottom: 90px; left:16px; right:16px;
+      background: rgba(15,23,42,0.6);
+      backdrop-filter: blur(8px);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      text-align: center;
+      z-index: 5;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 
+  <canvas id="canvas"></canvas>
+
   <header>
-    <div class="top-bar">
-      <div class="logo">Dîjîtal Kurdistan</div>
-      <button class="wallet-btn">Bagla Wallet → $LKURD</button>
-    </div>
+    <div class="logo">Meta Kurdistan</div>
+    <button class="wallet-btn">$LKURD Wallet</button>
   </header>
 
-  <main>
-
-    <div class="map-container">
-      <div class="map-placeholder">
-        Kürdistan Haritası (SVG / Canvas / Leaflet gelecek aşamada)<br>
-        Şu an sembolik alan – tıklayınca zoom & etkileşim açılacak
-      </div>
-    </div>
-
-    <div class="stats-bar">
-      <div class="stat-card">
-        <div class="stat-number">184K</div>
-        <div class="stat-label">Welatî</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">8.4M</div>
-        <div class="stat-label">$LKURD</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">42</div>
-        <div class="stat-label">Proje</div>
-      </div>
-    </div>
-
-    <h2 class="section-title">Wezaretan (Bakanlıklar)</h2>
-
-    <div class="ministries-grid">
-      <div class="ministry-card">
-        <span class="ministry-icon">💰</span>
-        <div class="ministry-name">Wezareta Aboriyê</div>
-        <div class="ministry-desc">Lîra Kurdî, DeFi, borsayên dex, tokenomics, xezîne</div>
-      </div>
-
-      <div class="ministry-card">
-        <span class="ministry-icon">🌾</span>
-        <div class="ministry-name">Wezareta Çandiniyê</div>
-        <div class="ministry-desc">NFT ax, zîraet oyunî, tokenên berhemên xwarinê</div>
-      </div>
-
-      <div class="ministry-card">
-        <span class="ministry-icon">⚡</span>
-        <div class="ministry-name">Wezareta Teknolojiyê</div>
-        <div class="ministry-desc">DApp'lar, smart contract, AI Kurdî, metaverse entegrasyon</div>
-      </div>
-
-      <div class="ministry-card">
-        <span class="ministry-icon">🛡️</span>
-        <div class="ministry-name">Wezareta Parastinê</div>
-        <div class="ministry-desc">DAO parastin, sîber ewlekarî, lîstikên şerî yên stratejîk</div>
-      </div>
-    </div>
-
-  </main>
+  <div class="info-overlay">
+    Dîjîtal Welatê Me • Döndür & Keşfet<br>
+    Wezaretan yakında aktif olacak 🚀
+  </div>
 
   <nav class="bottom-nav">
-    <div class="nav-item active">
-      <div class="nav-icon">🏠</div>
-      Mal
-    </div>
-    <div class="nav-item">
-      <div class="nav-icon">🗺️</div>
-      Nexşe
-    </div>
-    <div class="nav-item">
-      <div class="nav-icon">💎</div>
-      $LKURD
-    </div>
-    <div class="nav-item">
-      <div class="nav-icon">👥</div>
-      Civak
-    </div>
+    <div class="nav-item active"><div class="nav-icon">🌍</div> Nexşe</div>
+    <div class="nav-item"><div class="nav-icon">💰</div> Aborî</div>
+    <div class="nav-item"><div class="nav-icon">🛡️</div> Parastin</div>
+    <div class="nav-item"><div class="nav-icon">⚡</div> Teknolojî</div>
   </nav>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a1321);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 5);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    // Hafif ambient + directional ışık (kırmızı vurgu için)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xff5555, 1.2);
+    dirLight.position.set(5, 3, 5);
+    scene.add(dirLight);
+
+    // Ana küre (dünya gibi, ama sadece Kürdistan bölgesi vurgulu)
+    const geometry = new THREE.SphereGeometry(2, 64, 64);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.9,
+      metalness: 0.1
+    });
+    const globe = new THREE.Mesh(geometry, material);
+    scene.add(globe);
+
+    // Kürdistan bölgesi yaklaşık koordinatları ile basit extruded shape (kırmızı glow)
+    const kurdistanPoints = [
+      new THREE.Vector2(-0.4, 0.55),  // Kabaca Kuzey Irak → Türkiye → İran → Suriye bölgesi
+      new THREE.Vector2(-0.1, 0.7),
+      new THREE.Vector2(0.3, 0.65),
+      new THREE.Vector2(0.45, 0.4),
+      new THREE.Vector2(0.2, 0.25),
+      new THREE.Vector2(-0.25, 0.3),
+      new THREE.Vector2(-0.4, 0.55)
+    ];
+
+    const shape = new THREE.Shape(kurdistanPoints);
+    const extrudeSettings = { depth: 0.08, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.02 };
+    const kurdistanGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    const kurdistanMat = new THREE.MeshStandardMaterial({
+      color: 0xdc2626,
+      emissive: 0x991b1b,
+      emissiveIntensity: 0.7,
+      roughness: 0.4,
+      metalness: 0.6
+    });
+    const kurdistanMesh = new THREE.Mesh(kurdistanGeo, kurdistanMat);
+    kurdistanMesh.position.set(-0.8, -0.4, 2.05); // kürenin yüzeyine yaklaşık hizalama
+    kurdistanMesh.rotation.set(0.4, -0.6, 0);
+    globe.add(kurdistanMesh); // küreye child olarak ekle ki beraber dönsün
+
+    // Yıldız arka planı (metaverse havası)
+    const starsGeo = new THREE.BufferGeometry();
+    const starsCount = 5000;
+    const posArray = new Float32Array(starsCount * 3);
+    for(let i=0; i<starsCount*3; i++) posArray[i] = (Math.random() - 0.5) * 40;
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.03 });
+    const stars = new THREE.Points(starsGeo, starsMat);
+    scene.add(stars);
+
+    // Kontroller (mobil dokunmatik destekli)
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.8;
+    controls.zoomSpeed = 0.9;
+    controls.minDistance = 2.8;
+    controls.maxDistance = 8;
+    controls.enablePan = false;
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Animasyon loop
+    function animate() {
+      requestAnimationFrame(animate);
+      globe.rotation.y += 0.0008; // yavaş rotasyon
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
 
 </body>
 </html>
