@@ -1,730 +1,280 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="ku" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Telegram Tıkla Kazan Oyunu</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #8A2BE2 0%, #4B0082 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-top: 10px;
-            width: 100%;
-        }
-        
-        h1 {
-            font-size: 32px;
-            margin-bottom: 8px;
-            color: #FFD700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .subtitle {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
-        
-        .balance-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            text-align: center;
-        }
-        
-        .balance-title {
-            font-size: 18px;
-            margin-bottom: 15px;
-            opacity: 0.9;
-        }
-        
-        .balance-amount {
-            font-size: 48px;
-            font-weight: 800;
-            color: #FFD700;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .tl-icon {
-            font-size: 40px;
-            color: #FFD700;
-        }
-        
-        .energy-container {
-            width: 100%;
-            margin-bottom: 25px;
-        }
-        
-        .energy-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-        
-        .energy-bar-container {
-            width: 100%;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        .energy-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00FF00, #7CFC00);
-            width: 100%;
-            border-radius: 15px;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #000;
-            font-size: 14px;
-        }
-        
-        .game-area {
-            width: 100%;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        #game-canvas {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .tap-instruction {
-            position: absolute;
-            bottom: 20px;
-            text-align: center;
-            font-size: 18px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .click-effect {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,215,0,0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            transform: translate(-50%, -50%);
-        }
-        
-        .reward-popup {
-            position: absolute;
-            color: #FFD700;
-            font-weight: bold;
-            font-size: 24px;
-            pointer-events: none;
-            opacity: 0;
-            animation: floatUp 1s ease-out;
-        }
-        
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100px); opacity: 0; }
-        }
-        
-        .stats-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 25px;
-        }
-        
-        .stat-box {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            flex: 1;
-            margin: 0 5px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        
-        .daily-reward {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            text-align: center;
-        }
-        
-        .reward-title {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #FFD700;
-        }
-        
-        .reward-description {
-            margin-bottom: 20px;
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .reward-button {
-            background: linear-gradient(to right, #FFD700, #FFA500);
-            border: none;
-            border-radius: 15px;
-            padding: 18px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #4B0082;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .reward-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(255, 215, 0, 0.4);
-        }
-        
-        .reward-button:active {
-            transform: translateY(1px);
-        }
-        
-        .reward-button.disabled {
-            background: linear-gradient(to right, #666, #888);
-            color: #aaa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .timer {
-            font-size: 18px;
-            color: #FFD700;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 20px;
-            font-size: 14px;
-            opacity: 0.7;
-            width: 100%;
-        }
-        
-        @media (max-width: 500px) {
-            .container {
-                padding: 0 10px;
-            }
-            
-            .balance-card, .daily-reward, .game-area {
-                padding: 20px;
-            }
-            
-            .balance-amount {
-                font-size: 40px;
-            }
-            
-            .game-area {
-                height: 280px;
-            }
-            
-            .stat-box {
-                padding: 15px;
-            }
-            
-            .stat-value {
-                font-size: 24px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Dîjîtal Kurdistan • Meta Kurdistan</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --accent: #dc2626;
+      --accent-dark: #b91c1c;
+      --card: #1e293b;
+      --text: #e2e8f0;
+      --text-soft: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      padding: 14px 16px;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .wallet-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .wallet-btn:hover {
+      background: var(--accent-dark);
+    }
+
+    main {
+      padding: 16px;
+      padding-bottom: 90px;
+    }
+
+    .map-container {
+      height: 220px;
+      background: #111827;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      position: relative;
+      border: 1px solid #334155;
+    }
+
+    .map-placeholder {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, #1e293b, #334155);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--text-soft);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px 10px;
+      text-align: center;
+      border: 1px solid #475569;
+    }
+
+    .stat-number {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    h2.section-title {
+      font-size: 1.3rem;
+      margin: 24px 0 14px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    .ministries-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .ministry-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #475569;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+
+    .ministry-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .ministry-icon {
+      font-size: 2.1rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .ministry-name {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .ministry-desc {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      line-height: 1.35;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid #334155;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-around;
+      z-index: 100;
+    }
+
+    .nav-item {
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+    }
+
+    .nav-icon {
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-hand-pointer"></i> TIKLA KAZAN</h1>
-            <p class="subtitle">Tıkla, TL kazan, Eğlen!</p>
-            <p class="subtitle">Her gün 1 TL otomatik ödül!</p>
-        </header>
-        
-        <div class="balance-card">
-            <div class="balance-title">Toplam Bakiyeniz</div>
-            <div class="balance-amount">
-                <span class="tl-icon">₺</span>
-                <span id="balance">12.45</span>
-            </div>
-        </div>
-        
-        <div class="energy-container">
-            <div class="energy-header">
-                <span>ENERJİ</span>
-                <span id="energy-percentage">%100</span>
-            </div>
-            <div class="energy-bar-container">
-                <div class="energy-bar" id="energy-bar" style="width: 100%;">100%</div>
-            </div>
-        </div>
-        
-        <div class="game-area">
-            <div id="game-canvas"></div>
-            <div class="tap-instruction">TIKLA! → <span id="reward-per-tap">₺0.10</span> KAZAN</div>
-        </div>
-        
-        <div class="stats-container">
-            <div class="stat-box">
-                <div class="stat-value" id="total-clicks">124</div>
-                <div class="stat-label">Toplam Tıklama</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="today-earnings">1.50</div>
-                <div class="stat-label">Bugün Kazanılan</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="energy-left">10</div>
-                <div class="stat-label">Kalan Enerji</div>
-            </div>
-        </div>
-        
-        <div class="daily-reward">
-            <div class="reward-title"><i class="fas fa-gift"></i> Günlük Ödül</div>
-            <div class="reward-description">Her gün 1 TL ücretsiz ödül kazan!</div>
-            <button class="reward-button" id="daily-reward-btn">
-                <i class="fas fa-gift"></i> 1 TL ÖDÜLÜ AL
-            </button>
-            <div class="timer" id="timer">Yenilenme: <span id="countdown">00:00:00</span></div>
-        </div>
-        
-        <footer>
-            <p>© 2023 Telegram Tıkla Kazan Oyunu - Tüm hakları saklıdır</p>
-            <p>Bu bir demo oyundur. Gerçek para kazandırmaz.</p>
-        </footer>
+
+  <header>
+    <div class="top-bar">
+      <div class="logo">Dîjîtal Kurdistan</div>
+      <button class="wallet-btn">Bagla Wallet → $LKURD</button>
+    </div>
+  </header>
+
+  <main>
+
+    <div class="map-container">
+      <div class="map-placeholder">
+        Kürdistan Haritası (SVG / Canvas / Leaflet gelecek aşamada)<br>
+        Şu an sembolik alan – tıklayınca zoom & etkileşim açılacak
+      </div>
     </div>
 
-    <script>
-        // Oyun verileri
-        let balance = 12.45;
-        let energy = 100;
-        let totalClicks = 124;
-        let todayEarnings = 1.50;
-        let energyLeft = 10;
-        let rewardPerTap = 0.10;
-        let dailyRewardAvailable = true;
-        let lastDailyRewardDate = localStorage.getItem('lastDailyRewardDate');
-        
-        // DOM Elementleri
-        const balanceElement = document.getElementById('balance');
-        const energyBar = document.getElementById('energy-bar');
-        const energyPercentage = document.getElementById('energy-percentage');
-        const totalClicksElement = document.getElementById('total-clicks');
-        const todayEarningsElement = document.getElementById('today-earnings');
-        const energyLeftElement = document.getElementById('energy-left');
-        const rewardPerTapElement = document.getElementById('reward-per-tap');
-        const dailyRewardBtn = document.getElementById('daily-reward-btn');
-        const countdownElement = document.getElementById('countdown');
-        const gameCanvas = document.getElementById('game-canvas');
-        
-        // Oyun nesneleri
-        let scene, camera, renderer, cube;
-        let clickEffect = null;
-        let animationId = null;
-        
-        // Üç.js ile 3D küp oluştur
-        function init3DGame() {
-            // Sahne oluştur
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x8A2BE2);
-            
-            // Kamera oluştur
-            camera = new THREE.PerspectiveCamera(75, gameCanvas.offsetWidth / gameCanvas.offsetHeight, 0.1, 1000);
-            camera.position.z = 5;
-            
-            // Renderer oluştur
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(gameCanvas.offsetWidth, gameCanvas.offsetHeight);
-            renderer.shadowMap.enabled = true;
-            gameCanvas.appendChild(renderer.domElement);
-            
-            // Işık kaynakları ekle
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 10, 5);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-            
-            // Küp oluştur (eğlenceli bir tasarım)
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-            
-            // Renkli malzemeler
-            const materials = [
-                new THREE.MeshPhongMaterial({ color: 0xFFD700, shininess: 100 }), // Altın
-                new THREE.MeshPhongMaterial({ color: 0x00FF00, shininess: 100 }), // Yeşil
-                new THREE.MeshPhongMaterial({ color: 0xFF0000, shininess: 100 }), // Kırmızı
-                new THREE.MeshPhongMaterial({ color: 0x0000FF, shininess: 100 }), // Mavi
-                new THREE.MeshPhongMaterial({ color: 0xFF00FF, shininess: 100 }), // Pembe
-                new THREE.MeshPhongMaterial({ color: 0x00FFFF, shininess: 100 })  // Camgöbeği
-            ];
-            
-            cube = new THREE.Mesh(geometry, materials);
-            cube.castShadow = true;
-            scene.add(cube);
-            
-            // Zemin oluştur
-            const planeGeometry = new THREE.PlaneGeometry(10, 10);
-            const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x4B0082, side: THREE.DoubleSide });
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.rotation.x = Math.PI / 2;
-            plane.position.y = -2;
-            plane.receiveShadow = true;
-            scene.add(plane);
-            
-            // Animasyon döngüsü
-            function animate() {
-                animationId = requestAnimationFrame(animate);
-                
-                // Küpü döndür
-                cube.rotation.x += 0.01;
-                cube.rotation.y += 0.01;
-                
-                renderer.render(scene, camera);
-            }
-            
-            animate();
-            
-            // Pencere boyutu değiştiğinde renderer'ı güncelle
-            window.addEventListener('resize', function() {
-                camera.aspect = gameCanvas.offsetWidth / gameCanvas.offsetHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(gameCanvas.offsetWidth, gameCanvas.offsetHeight);
-            });
-        }
-        
-        // Tıkla efekti oluştur
-        function createClickEffect(x, y) {
-            const effect = document.createElement('div');
-            effect.className = 'click-effect';
-            effect.style.left = `${x}px`;
-            effect.style.top = `${y}px`;
-            document.querySelector('.game-area').appendChild(effect);
-            
-            // Efekti animasyonla göster
-            setTimeout(() => {
-                effect.style.opacity = '1';
-                effect.style.transform = `translate(-50%, -50%) scale(2)`;
-                
-                setTimeout(() => {
-                    effect.remove();
-                }, 500);
-            }, 10);
-        }
-        
-        // Ödül popup'ı oluştur
-        function createRewardPopup(x, y, amount) {
-            const popup = document.createElement('div');
-            popup.className = 'reward-popup';
-            popup.textContent = `+₺${amount.toFixed(2)}`;
-            popup.style.left = `${x}px`;
-            popup.style.top = `${y}px`;
-            document.querySelector('.game-area').appendChild(popup);
-            
-            // Popup'ı animasyonla göster
-            setTimeout(() => {
-                popup.style.opacity = '1';
-                
-                setTimeout(() => {
-                    popup.remove();
-                }, 1000);
-            }, 10);
-        }
-        
-        // Oyun tıklama işleyicisi
-        function handleGameClick(event) {
-            // Enerji kontrolü
-            if (energy <= 0) return;
-            
-            // Tıklama koordinatlarını al
-            const rect = gameCanvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            
-            // Tıklama efekti oluştur
-            createClickEffect(x, y);
-            
-            // Ödül popup'ı oluştur
-            createRewardPopup(x, y, rewardPerTap);
-            
-            // Küpü tıklama etkisi için sıçrat
-            cube.position.y = 0.5;
-            setTimeout(() => {
-                cube.position.y = 0;
-            }, 200);
-            
-            // Küpü büyüt ve küçült
-            cube.scale.set(1.2, 1.2, 1.2);
-            setTimeout(() => {
-                cube.scale.set(1, 1, 1);
-            }, 200);
-            
-            // Değerleri güncelle
-            energy -= 10;
-            energyLeft--;
-            balance += rewardPerTap;
-            totalClicks++;
-            todayEarnings += rewardPerTap;
-            
-            // UI'ı güncelle
-            updateUI();
-            
-            // Enerji bittiyse mesaj göster
-            if (energy <= 0) {
-                setTimeout(() => {
-                    alert("Enerjin bitti! 10 dakika sonra enerjin dolacak veya günlük ödülünü alarak enerjini doldurabilirsin.");
-                }, 500);
-                
-                // 10 dakika sonra enerjiyi yenile
-                setTimeout(() => {
-                    energy = 100;
-                    energyLeft = 10;
-                    updateUI();
-                }, 600000); // 10 dakika
-            }
-        }
-        
-        // UI güncelleme fonksiyonu
-        function updateUI() {
-            // Bakiyeyi güncelle
-            balanceElement.textContent = balance.toFixed(2);
-            
-            // Enerji çubuğunu güncelle
-            const energyWidth = energy + '%';
-            energyBar.style.width = energyWidth;
-            energyBar.textContent = energyWidth;
-            energyPercentage.textContent = energyWidth;
-            
-            // Diğer istatistikleri güncelle
-            totalClicksElement.textContent = totalClicks;
-            todayEarningsElement.textContent = todayEarnings.toFixed(2);
-            energyLeftElement.textContent = energyLeft;
-            rewardPerTapElement.textContent = `₺${rewardPerTap.toFixed(2)}`;
-            
-            // Günlük ödül butonunu güncelle
-            updateDailyRewardButton();
-            
-            // Verileri localStorage'a kaydet
-            saveGameData();
-        }
-        
-        // Günlük ödül butonunu güncelle
-        function updateDailyRewardButton() {
-            const now = new Date();
-            const today = now.toDateString();
-            
-            // Bugün ödül alınmış mı kontrol et
-            if (lastDailyRewardDate === today) {
-                dailyRewardAvailable = false;
-                dailyRewardBtn.classList.add('disabled');
-                dailyRewardBtn.innerHTML = '<i class="fas fa-check"></i> BUGÜNÜN ÖDÜLÜ ALINDI';
-            } else {
-                dailyRewardAvailable = true;
-                dailyRewardBtn.classList.remove('disabled');
-                dailyRewardBtn.innerHTML = '<i class="fas fa-gift"></i> 1 TL ÖDÜLÜ AL';
-            }
-        }
-        
-        // Günlük ödül al
-        function claimDailyReward() {
-            if (!dailyRewardAvailable) return;
-            
-            const now = new Date();
-            const today = now.toDateString();
-            
-            // Ödülü ver
-            balance += 1.00;
-            todayEarnings += 1.00;
-            
-            // Enerjiyi doldur
-            energy = 100;
-            energyLeft = 10;
-            
-            // Tarihi kaydet
-            lastDailyRewardDate = today;
-            localStorage.setItem('lastDailyRewardDate', today);
-            
-            // UI'ı güncelle
-            updateUI();
-            
-            // Başarı mesajı göster
-            alert("Tebrikler! Günlük 1 TL ödülünü aldın ve enerjin tamamen doldu!");
-        }
-        
-        // Geri sayım zamanlayıcısı
-        function updateCountdown() {
-            const now = new Date();
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            
-            const timeLeft = tomorrow - now;
-            
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
-            countdownElement.textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-        
-        // Oyun verilerini kaydet
-        function saveGameData() {
-            const gameData = {
-                balance,
-                energy,
-                totalClicks,
-                todayEarnings,
-                energyLeft,
-                rewardPerTap,
-                lastDailyRewardDate
-            };
-            
-            localStorage.setItem('tapEarnGameData', JSON.stringify(gameData));
-        }
-        
-        // Oyun verilerini yükle
-        function loadGameData() {
-            const savedData = localStorage.getItem('tapEarnGameData');
-            
-            if (savedData) {
-                const gameData = JSON.parse(savedData);
-                balance = gameData.balance || 12.45;
-                energy = gameData.energy || 100;
-                totalClicks = gameData.totalClicks || 124;
-                todayEarnings = gameData.todayEarnings || 1.50;
-                energyLeft = gameData.energyLeft || 10;
-                rewardPerTap = gameData.rewardPerTap || 0.10;
-                lastDailyRewardDate = gameData.lastDailyRewardDate;
-            }
-            
-            // Bugünün tarihini kontrol et, eğer yeni bir günse bugün kazanılanı sıfırla
-            const today = new Date().toDateString();
-            const lastPlayDate = localStorage.getItem('lastPlayDate');
-            
-            if (lastPlayDate !== today) {
-                todayEarnings = 0;
-                localStorage.setItem('lastPlayDate', today);
-            }
-            
-            updateUI();
-        }
-        
-        // Oyunu başlat
-        function initGame() {
-            // 3D oyunu başlat
-            init3DGame();
-            
-            // Oyun verilerini yükle
-            loadGameData();
-            
-            // Tıklama olayını ekle
-            gameCanvas.addEventListener('click', handleGameClick);
-            
-            // Günlük ödül butonuna tıklama olayını ekle
-            dailyRewardBtn.addEventListener('click', claimDailyReward);
-            
-            // Geri sayım zamanlayıcısını başlat
-            setInterval(updateCountdown, 1000);
-            updateCountdown();
-            
-            // Oyun yüklendiğinde localStorage'dan verileri yükle
-            window.addEventListener('load', loadGameData);
-        }
-        
-        // Oyunu başlat
-        initGame();
-    </script>
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-number">184K</div>
+        <div class="stat-label">Welatî</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">8.4M</div>
+        <div class="stat-label">$LKURD</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">42</div>
+        <div class="stat-label">Proje</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Wezaretan (Bakanlıklar)</h2>
+
+    <div class="ministries-grid">
+      <div class="ministry-card">
+        <span class="ministry-icon">💰</span>
+        <div class="ministry-name">Wezareta Aboriyê</div>
+        <div class="ministry-desc">Lîra Kurdî, DeFi, borsayên dex, tokenomics, xezîne</div>
+      </div>
+
+      <div class="ministry-card">
+        <span class="ministry-icon">🌾</span>
+        <div class="ministry-name">Wezareta Çandiniyê</div>
+        <div class="ministry-desc">NFT ax, zîraet oyunî, tokenên berhemên xwarinê</div>
+      </div>
+
+      <div class="ministry-card">
+        <span class="ministry-icon">⚡</span>
+        <div class="ministry-name">Wezareta Teknolojiyê</div>
+        <div class="ministry-desc">DApp'lar, smart contract, AI Kurdî, metaverse entegrasyon</div>
+      </div>
+
+      <div class="ministry-card">
+        <span class="ministry-icon">🛡️</span>
+        <div class="ministry-name">Wezareta Parastinê</div>
+        <div class="ministry-desc">DAO parastin, sîber ewlekarî, lîstikên şerî yên stratejîk</div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active">
+      <div class="nav-icon">🏠</div>
+      Mal
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">🗺️</div>
+      Nexşe
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">💎</div>
+      $LKURD
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">👥</div>
+      Civak
+    </div>
+  </nav>
+
 </body>
 </html>
