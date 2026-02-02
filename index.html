@@ -1,120 +1,184 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>3D Pixel Land</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+/>
 
-    #scene {
-      width: 100%;
-      height: 100%;
-      perspective: 800px;
-      transform-style: preserve-3d;
-      position: relative;
-    }
+<title>Telegram Mini App – Digital Pixel World</title>
 
-    .ground {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, #0a2f1a, #1a5c2e);
-      transform: rotateX(60deg) translateZ(-200px);
-    }
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    touch-action: none;
+  }
 
-    .pixel-land {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform-style: preserve-3d;
-      transform: translate(-50%, -50%) rotateX(55deg) rotateY(35deg) scale(0.9);
-    }
+  body {
+    background: #0b0f14;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
 
-    .voxel {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      transform-style: preserve-3d;
-      transform-origin: 50% 50% -10px;
-    }
+  /* Telegram top safe area */
+  #safe-top {
+    height: 24px;
+    width: 100%;
+    background: #0b0f14;
+  }
 
-    .face {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: #444;
-      border: 1px solid #222;
-      box-sizing: border-box;
-    }
+  /* App container */
+  #app {
+    width: 100%;
+    height: calc(100vh - 24px);
+    position: relative;
+  }
 
-    .top    { transform: translateZ(10px);  background: #8bc34a; border-color: #6b9e3a; }
-    .front  { transform: rotateX(-90deg) translateZ(10px); background: #689f38; border-color: #4c7f1f; }
-    .right  { transform: rotateY( 90deg) translateZ(10px); background: #558b2f; border-color: #33691e; }
-    .back   { transform: rotateX( 90deg) translateZ(10px); background: #558b2f; border-color: #33691e; }
-    .left   { transform: rotateY(-90deg) translateZ(10px); background: #689f38; border-color: #4c7f1f; }
-    .bottom { transform: translateZ(-10px);  background: #33691e; border-color: #1b5e20; }
+  #ui {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    color: #ffffff;
+    font-size: 12px;
+    opacity: 0.85;
+    z-index: 10;
+    pointer-events: none;
+  }
 
-    /* Hafif gölge efekti */
-    .voxel:hover .top { filter: brightness(1.2); }
-  </style>
+  canvas {
+    display: block;
+  }
+</style>
 </head>
+
 <body>
 
-<div id="scene">
-  <div class="ground"></div>
+<div id="safe-top"></div>
 
-  <div class="pixel-land">
-
-    <!-- Senin haritana benzer kaba bir şekil (düzensiz, doğu-batı uzantılı) -->
-    <!-- Her satır ≈ 1 yükseklik katmanı temsil ediyor -->
-
-    <!-- Katman 1 (en alt) -->
-    <div class="voxel" style="transform: translate3d(-140px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-120px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-100px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-80px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-60px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-
-    <!-- Katman 2 -->
-    <div class="voxel" style="transform: translate3d(-130px,  60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-110px,  60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-90px,   60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-70px,   60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-
-    <!-- Katman 3 (tepe kısımlar) -->
-    <div class="voxel" style="transform: translate3d(-120px,  40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-100px,  40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-80px,   40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-
-    <!-- Sağ taraf çıkıntı (senin haritadaki doğu kısmı gibi) -->
-    <div class="voxel" style="transform: translate3d(-40px,   70px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(-20px,   70px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-    <div class="voxel" style="transform: translate3d(  0px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-
-    <!-- Küçük tepe -->
-    <div class="voxel" style="transform: translate3d(-90px,   20px,  60px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
-
+<div id="app">
+  <div id="ui">
+    🌍 Digital World<br>
+    Each voxel = 1 land
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
 <script>
-// Çok hafif otomatik rotasyon (isteğe bağlı – kapatmak istersen sil)
-let angleY = 35;
-function animate() {
-  angleY += 0.15;
-  document.querySelector('.pixel-land').style.transform = 
-    `translate(-50%, -50%) rotateX(55deg) rotateY(${angleY}deg) scale(0.9)`;
-  requestAnimationFrame(animate);
+/* =========================
+   SCENE
+========================= */
+const app = document.getElementById("app");
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0f14);
+
+const camera = new THREE.PerspectiveCamera(
+  65,
+  app.clientWidth / app.clientHeight,
+  0.1,
+  500
+);
+camera.position.set(40, 70, 100);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: "high-performance"
+});
+renderer.setSize(app.clientWidth, app.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+app.appendChild(renderer.domElement);
+
+/* =========================
+   CONTROLS (MOBILE)
+========================= */
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.enablePan = false;
+controls.minDistance = 30;
+controls.maxDistance = 160;
+controls.maxPolarAngle = Math.PI / 2.05;
+
+/* =========================
+   LIGHT
+========================= */
+scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(120, 200, 80);
+scene.add(sun);
+
+/* =========================
+   WORLD CONFIG
+========================= */
+const WORLD_SIZE = 36;
+const MAX_HEIGHT = 10;
+const VOXEL = 1;
+
+const geometry = new THREE.BoxGeometry(VOXEL, VOXEL, VOXEL);
+
+/* zoning / land class */
+function materialByHeight(y) {
+  if (y >= 7) return new THREE.MeshStandardMaterial({ color: 0xffc857 });
+  if (y >= 4) return new THREE.MeshStandardMaterial({ color: 0x4caf50 });
+  return new THREE.MeshStandardMaterial({ color: 0x546e7a });
 }
-// animate();   // ← otomatik döndürmeyi açmak istersen bu satırı uncomment yap
+
+/* simple procedural noise */
+function noise(x, z) {
+  return (
+    Math.sin(x * 0.28) +
+    Math.cos(z * 0.28) +
+    Math.sin((x + z) * 0.18)
+  );
+}
+
+/* =========================
+   GENERATE WORLD
+========================= */
+for (let x = -WORLD_SIZE / 2; x < WORLD_SIZE / 2; x++) {
+  for (let z = -WORLD_SIZE / 2; z < WORLD_SIZE / 2; z++) {
+
+    const h = Math.floor(
+      (noise(x, z) + 2) * 0.45 * MAX_HEIGHT
+    );
+
+    for (let y = 0; y < h; y++) {
+      const voxel = new THREE.Mesh(
+        geometry,
+        materialByHeight(y)
+      );
+      voxel.position.set(x, y, z);
+      scene.add(voxel);
+    }
+  }
+}
+
+/* =========================
+   RENDER LOOP
+========================= */
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+/* =========================
+   RESIZE (ORIENTATION SAFE)
+========================= */
+window.addEventListener("resize", () => {
+  const w = app.clientWidth;
+  const h = app.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
 </script>
 
 </body>
