@@ -16,7 +16,6 @@
       width:100%;
       overflow:hidden;
       background:#04100a;
-      font-family: system-ui, sans-serif;
       touch-action: manipulation;
     }
 
@@ -24,104 +23,94 @@
       height:100vh;
       width:100vw;
       position:relative;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
     }
 
     #three-container {
-      width: 92vw;
-      max-width: 500px;
-      aspect-ratio: 2 / 3;          /* 500:750 ≈ 2:3 oranını koruyoruz */
-      position: relative;
-      background: linear-gradient(to bottom, #0a1f12, #04100a);
-      border-radius: 16px;
+      position: absolute;
+      inset: 0;
+      background: #0a1f12;
       overflow: hidden;
-      box-shadow: 0 0 40px rgba(46,139,87,0.25);
-      margin: auto;
     }
 
     #three-canvas {
-      width:100%;
-      height:100%;
-      display:block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
-    .safe-area-top {
-      height: 120px;                /* üst boşluk azaltıldı (~%15 az) */
-      width:100%;
-      position:absolute;
-      top:0;
-      left:0;
-      z-index:5;
-      pointer-events:none;
-      background: linear-gradient(to bottom, rgba(4,16,10,0.88), transparent);
+    .safe-top {
+      height: 110px;           /* Üst boşluk biraz daha azaltıldı, ama hala güvenli */
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 5;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(4,16,10,0.9), transparent);
     }
 
     .overlay {
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      padding: 130px 12px 16px;     /* üst biraz daha sıkı */
-      z-index:3;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 120px 12px 20px;
+      z-index: 3;
     }
 
     .top-info {
-      background: rgba(10,31,18,0.7);
+      background: rgba(10,31,18,0.75);
       backdrop-filter: blur(10px);
-      color: #d4af37;
-      padding: 8px 14px;
-      border-radius: 10px;
+      color: #ffd700;
+      padding: 10px 16px;
+      border-radius: 12px;
       width: fit-content;
       align-self: center;
-      border: 1px solid rgba(212,175,55,0.3);
-      font-size: 0.9rem;
+      border: 1px solid #d4af37;
+      font-size: 0.95rem;
       font-weight: 600;
-      pointer-events:auto;
+      pointer-events: auto;
     }
 
     .bottom-bar {
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      flex-wrap:wrap;
-      pointer-events:auto;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      pointer-events: auto;
     }
 
     .action-btn {
       background: linear-gradient(145deg, #1a3c2a, #0f251a);
       border: 2px solid #d4af37;
       color: #d4af37;
-      padding: 12px 22px;
-      border-radius: 50px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor:pointer;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
       transition: all 0.2s;
-      box-shadow: 0 5px 18px rgba(212,175,55,0.2);
+      box-shadow: 0 4px 15px rgba(212,175,55,0.2);
     }
 
-    .action-btn:hover {
-      transform: translateY(-3px);
+    .action-btn:active {
+      transform: scale(0.96);
       background: #2e8b57;
       color: white;
-      box-shadow: 0 10px 28px rgba(46,139,87,0.4);
     }
 
-    @media (max-width: 420px) {
-      #three-container { width: 96vw; }
-      .action-btn { padding: 10px 18px; font-size: 0.88rem; }
+    @media (max-width: 400px) {
+      .action-btn { padding: 12px 24px; font-size: 0.92rem; }
     }
   </style>
 </head>
 <body>
 
 <div id="app">
-  <div class="safe-area-top"></div>
+  <div class="safe-top"></div>
 
   <div id="three-container">
     <canvas id="three-canvas"></canvas>
@@ -129,7 +118,7 @@
 
   <div class="overlay">
     <div class="top-info">
-      ₭ 3.120.000  •  Seviye 10  •  Dijital Kurdistan
+      K 3.120.000 • Seviye 10 • Dijital Kurdistan
     </div>
 
     <div class="bottom-bar">
@@ -141,132 +130,104 @@
 </div>
 
 <script>
-// Telegram optimizasyon
+// Telegram'ı maksimum zorla
 if (window.Telegram?.WebApp) {
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
-  if (tg.requestFullscreen) tg.requestFullscreen();
+  tg.requestFullscreen?.();
   tg.setBackgroundColor('#04100a');
+  tg.setHeaderColor('bg_color');
 }
 
-// Three.js – 500×750 tarzı sandbox harita
+// Three.js setup
+const container = document.getElementById('three-container');
 const canvas = document.getElementById('three-canvas');
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a1f12);
-scene.fog = new THREE.FogExp2(0x0a1f12, 0.0011);
+scene.fog = new THREE.FogExp2(0x0a1f12, 0.0008);
 
-const camera = new THREE.PerspectiveCamera(50, 2/3, 0.5, 2000); // aspect 500/750 = 2/3
-camera.position.set(0, 38, 55);  // biraz daha yakın, harita odaklı
+const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 2000);
+camera.position.set(0, 40, 70);
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-renderer.setPixelRatio(window.devicePixelRatio * 1.15);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.minDistance = 18;
-controls.maxDistance = 140;
-controls.maxPolarAngle = Math.PI * 0.42;
-controls.enablePan = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 15;
+controls.maxDistance = 160;
+controls.maxPolarAngle = Math.PI * 0.45;
 
-// Zemin – hafif dalgalı terrain
-const groundGeo = new THREE.PlaneGeometry(380, 570, 100, 150); // 500:750 oranına yakın
+// Zemin
+const groundGeo = new THREE.PlaneGeometry(400, 600, 80, 120);
 groundGeo.rotateX(-Math.PI / 2);
-
-const vertices = groundGeo.attributes.position.array;
-for (let i = 2; i < vertices.length; i += 3) {
-  vertices[i] = Math.sin(vertices[i-2] * 0.02) * 2.5 + Math.cos(vertices[i-1] * 0.015) * 1.8;
-}
-
-groundGeo.computeVertexNormals();
-
-const groundMat = new THREE.MeshStandardMaterial({ 
-  color: 0x3a6b45, 
-  roughness: 0.9, 
-  metalness: 0.03 
-});
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x356b45, roughness: 0.9 });
 const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.receiveShadow = true;
 scene.add(ground);
 
-// Dağlar / tepeler
-for (let i = 0; i < 10; i++) {
-  const size = 16 + Math.random() * 24;
-  const height = 20 + Math.random() * 32;
+// Tepeler
+for (let i = 0; i < 8; i++) {
   const hill = new THREE.Mesh(
-    new THREE.ConeGeometry(size, height, 8),
-    new THREE.MeshStandardMaterial({ color: 0x5a3f1e, roughness: 0.85 })
+    new THREE.ConeGeometry(20 + Math.random()*20, 25 + Math.random()*30, 7),
+    new THREE.MeshStandardMaterial({ color: 0x5a3f1e, roughness: 0.9 })
   );
-  hill.position.set(
-    (Math.random() - 0.5) * 260,
-    height * 0.5 + (Math.random() - 0.5) * 4,
-    (Math.random() - 0.5) * 400 - 80
-  );
+  hill.position.set((Math.random()-0.5)*300, 0, (Math.random()-0.5)*500 -100);
   hill.castShadow = true;
   scene.add(hill);
 }
 
-// Bakanlık binaları – daha detaylı
-function createMinistry(x, z, color, name, scale = 1.2) {
+// Bakanlık binaları (daha görünür olsun)
+function addBuilding(x, z, color, height = 25) {
   const group = new THREE.Group();
-  
-  // Ana gövde
   const base = new THREE.Mesh(
-    new THREE.BoxGeometry(14 * scale, 22 * scale, 14 * scale),
-    new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.25 })
+    new THREE.BoxGeometry(18, height, 18),
+    new THREE.MeshStandardMaterial({ color, metalness: 0.1, roughness: 0.5 })
   );
-  base.position.y = 11 * scale;
+  base.position.y = height/2;
   base.castShadow = true;
   group.add(base);
 
-  // Üst kısım / kule
-  const tower = new THREE.Mesh(
-    new THREE.CylinderGeometry(6 * scale, 8 * scale, 18 * scale, 8),
-    new THREE.MeshStandardMaterial({ color: 0xd4af37, emissive: 0x442200, emissiveIntensity: 0.2 })
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(12, 15, 6),
+    new THREE.MeshStandardMaterial({ color: 0xd4af37 })
   );
-  tower.position.y = 22 * scale + 9 * scale;
-  group.add(tower);
-
-  // Bayrak benzeri süs (kırmızı-yeşil-altın)
-  const flagPole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.8, 0.8, 28 * scale, 6),
-    new THREE.MeshStandardMaterial({ color: 0xffffff })
-  );
-  flagPole.position.set(0, 30 * scale, 0);
-  group.add(flagPole);
+  roof.position.y = height + 7.5;
+  group.add(roof);
 
   group.position.set(x, 0, z);
-  group.userData = { name }; // tıklama için ileride kullanılabilir
   scene.add(group);
 }
 
-createMinistry(-60, -90, 0x2e8b57, "Ekonomi", 1.3);
-createMinistry( 70, -50, 0x8b0000, "Kültür", 1.15);
-createMinistry(  0,  80, 0x4682b4, "Eğitim", 1.4);
-createMinistry(-90,  60, 0x4b0082, "Savunma", 1.1);
-createMinistry( 90,  30, 0xb8860b, "Dışişleri", 1.25);
+addBuilding(-80, -120, 0x2e8b57); // Yeşil - Ekonomi
+addBuilding(60, -60, 0xb22222);   // Kırmızı - Kültür
+addBuilding(0, 100, 0x4169e1);    // Mavi - Eğitim
+addBuilding(-50, 80, 0x4b0082);   // Mor - Savunma
 
-// Işık
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-const sun = new THREE.DirectionalLight(0xfff0c8, 1.5);
-sun.position.set(80, 140, 100);
-sun.castShadow = true;
-sun.shadow.mapSize.width = 2048;
-sun.shadow.mapSize.height = 2048;
-scene.add(sun);
+// Işıklar (daha parlak)
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+const dirLight = new THREE.DirectionalLight(0xfff5d0, 1.8);
+dirLight.position.set(100, 150, 120);
+dirLight.castShadow = true;
+scene.add(dirLight);
 
-// Resize (mobil + pc için)
-window.addEventListener('resize', () => {
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight;
-  camera.aspect = width / height;
+// Resize fonksiyonu – çok önemli!
+function onResize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
-});
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+onResize(); // İlk çağrı
 
+// Animate loop
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
