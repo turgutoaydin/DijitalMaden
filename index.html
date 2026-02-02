@@ -1,805 +1,268 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="ku" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital Kurdistan: Devlet İnşaası</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            touch-action: manipulation;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>LKURD • Dijital Kurdistan</title>
+  
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.min.js"></script>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
-            color: white;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a1f12;
+      color: #e0e0e0;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
 
-        .app-container {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    /* Telegram tema entegrasyonu */
+    :root {
+      --tg-bg: var(--tg-theme-bg-color, #0a1f12);
+      --tg-text: var(--tg-theme-text-color, #e0e0e0);
+      --tg-accent: var(--tg-theme-button-color, #2e8b57);
+      --gold: #d4af37;
+      --green: #2e8b57;
+      --dark: #04100a;
+    }
 
-        /* Header Stili */
-        .header {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            text-align: center;
-            border-bottom: 2px solid #ffd700;
-            z-index: 100;
-            position: relative;
-        }
+    #app {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(to bottom, var(--dark), var(--tg-bg));
+    }
 
-        .header h1 {
-            font-size: 1.4rem;
-            margin-bottom: 5px;
-            color: #ffd700;
-        }
+    header {
+      padding: 12px 16px;
+      background: rgba(10, 31, 18, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
 
-        .stats-bar {
-            display: flex;
-            justify-content: space-around;
-            font-size: 0.9rem;
-            margin-top: 8px;
-        }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
 
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    .logo span {
+      color: var(--green);
+    }
 
-        .stat-item i {
-            color: #4fc3f7;
-        }
+    nav {
+      display: flex;
+      gap: 10px;
+    }
 
-        /* Ana İçerik Alanı */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
+    .nav-btn {
+      background: rgba(46, 139, 87, 0.25);
+      border: 1px solid var(--green);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        /* 3D Harita Konteyneri */
-        #game-container {
-            flex: 1;
-            position: relative;
-            background: #0d0d1a;
-        }
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(46, 139, 87, 0.6);
+    }
 
-        #game-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    #three-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .map-controls {
-            position: absolute;
-            bottom: 20px;
-            right: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 50;
-        }
+    #three-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
 
-        .control-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.7);
-            border: 2px solid #ffd700;
-            color: white;
-            font-size: 1.2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
 
-        .control-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 215, 0, 0.3);
-        }
+    .top-info {
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 12px;
+      width: fit-content;
+      align-self: center;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
 
-        /* Alt Menü */
-        .bottom-menu {
-            background: rgba(0, 0, 0, 0.85);
-            border-top: 2px solid #ffd700;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            z-index: 100;
-        }
+    .bottom-bar {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      pointer-events: auto;
+    }
 
-        .menu-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.8rem;
-            color: #b0bec5;
-            transition: all 0.3s;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 10px;
-            flex: 1;
-            text-align: center;
-        }
+    .action-btn {
+      background: linear-gradient(145deg, #1a3c2a, #0f251a);
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+    }
 
-        .menu-btn i {
-            font-size: 1.4rem;
-            color: #4fc3f7;
-        }
+    .action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+      background: linear-gradient(145deg, #2e8b57, #1f5c3b);
+      color: white;
+    }
 
-        .menu-btn.active {
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-        }
+    .action-btn.gold {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
 
-        .menu-btn.active i {
-            color: #ffd700;
-        }
-
-        .menu-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Bakanlık Paneli */
-        .ministry-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(13, 13, 26, 0.95);
-            z-index: 200;
-            padding: 20px;
-            overflow-y: auto;
-            display: none;
-            flex-direction: column;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #ffd700;
-        }
-
-        .panel-header h2 {
-            color: #ffd700;
-            font-size: 1.5rem;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .ministry-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .ministry-card {
-            background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
-            border-radius: 15px;
-            padding: 15px;
-            border: 2px solid #4fc3f7;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .ministry-card:active {
-            transform: scale(0.97);
-            border-color: #ffd700;
-        }
-
-        .ministry-icon {
-            font-size: 2rem;
-            color: #ffd700;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .ministry-name {
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-
-        .ministry-level {
-            font-size: 0.8rem;
-            color: #b0bec5;
-            text-align: center;
-        }
-
-        /* Bağış Paneli */
-        .donation-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(13, 13, 26, 0.95);
-            z-index: 200;
-            padding: 20px;
-            overflow-y: auto;
-            display: none;
-            flex-direction: column;
-        }
-
-        .donation-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 5px solid #4fc3f7;
-        }
-
-        .donation-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #ffd700;
-        }
-
-        .donation-progress {
-            height: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #4fc3f7, #ffd700);
-            border-radius: 5px;
-            transition: width 0.5s;
-        }
-
-        .donate-btn {
-            background: linear-gradient(90deg, #4fc3f7, #2196f3);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-        }
-
-        /* Responsive Tasarım */
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.2rem;
-            }
-            
-            .ministry-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .menu-btn {
-                font-size: 0.7rem;
-            }
-            
-            .menu-btn i {
-                font-size: 1.2rem;
-            }
-        }
-
-        /* Yükleme Ekranı */
-        .loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .loader {
-            width: 80px;
-            height: 80px;
-            border: 8px solid rgba(255, 255, 255, 0.1);
-            border-top: 8px solid #ffd700;
-            border-radius: 50%;
-            animation: spin 1.5s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    @media (max-width: 500px) {
+      .action-btn { padding: 12px 20px; font-size: 0.95rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Başlık -->
-        <div class="header">
-            <h1>🌄 Digital Kurdistan: Devlet İnşaası</h1>
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <i class="fas fa-coins"></i>
-                    <span id="balance">1,250.50 KRDC</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-users"></i>
-                    <span id="citizens">1,842</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span id="level">Seviye 5</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Ana İçerik -->
-        <div class="main-content">
-            <!-- 3D Oyun Alanı -->
-            <div id="game-container">
-                <canvas id="game-canvas"></canvas>
-                <div class="map-controls">
-                    <button class="control-btn" id="zoom-in">
-                        <i class="fas fa-search-plus"></i>
-                    </button>
-                    <button class="control-btn" id="zoom-out">
-                        <i class="fas fa-search-minus"></i>
-                    </button>
-                    <button class="control-btn" id="rotate-view">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-            </div>
+<div id="app">
+  <header>
+    <div class="logo">LKURD <span>Dijital Kurdistan</span></div>
+    <nav>
+      <button class="nav-btn active">Bakanlıklar</button>
+      <button class="nav-btn">Topraklar</button>
+      <button class="nav-btn">Pazar</button>
+    </nav>
+  </header>
 
-            <!-- Bakanlık Paneli -->
-            <div class="ministry-panel" id="ministry-panel">
-                <div class="panel-header">
-                    <h2><i class="fas fa-landmark"></i> Bakanlıklar</h2>
-                    <button class="close-btn" id="close-ministry">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <p>Bakanlıklarınızı yönetin ve geliştirin. Her bakanlık devletinizi güçlendirir.</p>
-                
-                <div class="ministry-grid" id="ministry-grid">
-                    <!-- Bakanlık kartları JavaScript ile eklenecek -->
-                </div>
-            </div>
+  <div id="three-container">
+    <canvas id="three-canvas"></canvas>
 
-            <!-- Bağış Paneli -->
-            <div class="donation-panel" id="donation-panel">
-                <div class="panel-header">
-                    <h2><i class="fas fa-hand-holding-heart"></i> Bağış Projeleri</h2>
-                    <button class="close-btn" id="close-donation">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <p>Gerçek dünya projelerini destekleyin ve ödüller kazanın.</p>
-                
-                <div id="donation-list">
-                    <!-- Bağış öğeleri JavaScript ile eklenecek -->
-                </div>
-            </div>
-        </div>
+    <div class="overlay">
+      <div class="top-info">
+        Bakiyen: 1.240.000 ₭ | Seviye: 7 • Welatparêz
+      </div>
 
-        <!-- Alt Menü -->
-        <div class="bottom-menu">
-            <div class="menu-btn active" id="btn-home">
-                <i class="fas fa-home"></i>
-                <span>Ana Sayfa</span>
-            </div>
-            <div class="menu-btn" id="btn-ministry">
-                <i class="fas fa-landmark"></i>
-                <span>Bakanlıklar</span>
-            </div>
-            <div class="menu-btn" id="btn-donation">
-                <i class="fas fa-hand-holding-heart"></i>
-                <span>Bağışlar</span>
-            </div>
-            <div class="menu-btn" id="btn-wallet">
-                <i class="fas fa-wallet"></i>
-                <span>Cüzdan</span>
-            </div>
-            <div class="menu-btn" id="btn-profile">
-                <i class="fas fa-user"></i>
-                <span>Profil</span>
-            </div>
-        </div>
-
-        <!-- Yükleme Ekranı -->
-        <div class="loading-screen" id="loading-screen">
-            <div class="loader"></div>
-            <h2>Digital Kurdistan Yükleniyor...</h2>
-            <p>3D dünya hazırlanıyor</p>
-        </div>
+      <div class="bottom-bar">
+        <button class="action-btn">Bakanlığa Yatırım Yap</button>
+        <button class="action-btn gold">Yeni Bölge İnşa Et</button>
+        <button class="action-btn">Kültürel Etkinlik</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script>
-        // Telegram WebApp başlatma
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.MainButton.text = "KRDC AL";
-        tg.MainButton.show();
+<script>
+// Telegram Mini App başlatma
+if (window.Telegram?.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  if (tg.requestFullscreen) tg.requestFullscreen();
+  tg.MainButton.setText("LKURD Menü").show();
+  tg.MainButton.onClick(() => alert("Ana menüye hoş geldin!"));
+}
 
-        // Oyun durumu
-        const gameState = {
-            balance: 1250.50,
-            citizens: 1842,
-            level: 5,
-            ministries: [
-                { id: 1, name: "Eğitim", icon: "fas fa-graduation-cap", level: 3 },
-                { id: 2, name: "Sağlık", icon: "fas fa-hospital", level: 4 },
-                { id: 3, name: "Kültür", icon: "fas fa-theater-masks", level: 2 },
-                { id: 4, name: "Altyapı", icon: "fas fa-road", level: 5 },
-                { id: 5, name: "Tarım", icon: "fas fa-tractor", level: 3 },
-                { id: 6, name: "Enerji", icon: "fas fa-bolt", level: 2 }
-            ],
-            donations: [
-                { id: 1, title: "Kürdistan Kütüphanesi", progress: 65, target: 10000 },
-                { id: 2, title: "Çocuk Hastanesi", progress: 30, target: 25000 },
-                { id: 3, title: "Kültür Merkezi", progress: 80, target: 15000 }
-            ]
-        };
+// Basit Three.js sahne (daha sonra geliştirilecek)
+const canvas = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x04100a);
 
-        // DOM Elementleri
-        const loadingScreen = document.getElementById('loading-screen');
-        const ministryPanel = document.getElementById('ministry-panel');
-        const donationPanel = document.getElementById('donation-panel');
-        const ministryGrid = document.getElementById('ministry-grid');
-        const donationList = document.getElementById('donation-list');
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 15, 40);
 
-        // Three.js ile basit 3D sahne
-        let scene, camera, renderer, controls;
-        
-        function initThreeJS() {
-            // Sahne oluştur
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0d0d1a);
-            
-            // Kamera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 20, 20);
-            camera.lookAt(0, 0, 0);
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ 
-                canvas: document.getElementById('game-canvas'),
-                antialias: true 
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            
-            // Işık
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 5);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-            
-            // Yer (zemin)
-            const groundGeometry = new THREE.PlaneGeometry(50, 50, 32);
-            const groundMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x2e7d32,
-                roughness: 0.8
-            });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-            
-            // Dağlar (Kürdistan temalı)
-            const mountainGeometry = new THREE.ConeGeometry(3, 8, 8);
-            const mountainMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x795548,
-                roughness: 0.9
-            });
-            
-            // Birkaç dağ oluştur
-            const mountains = [
-                { x: -10, z: -10 },
-                { x: 5, z: -15 },
-                { x: 15, z: 5 },
-                { x: -15, z: 10 },
-                { x: 8, z: 12 }
-            ];
-            
-            mountains.forEach(pos => {
-                const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
-                mountain.position.set(pos.x, 4, pos.z);
-                mountain.castShadow = true;
-                mountain.receiveShadow = true;
-                scene.add(mountain);
-            });
-            
-            // Binalar (şehir)
-            const buildingGeometry = new THREE.BoxGeometry(2, 5, 2);
-            const buildingMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1a237e,
-                roughness: 0.6,
-                metalness: 0.2
-            });
-            
-            // Birkaç bina oluştur
-            const buildings = [
-                { x: -3, z: -3 },
-                { x: 0, z: -3 },
-                { x: 3, z: -3 },
-                { x: -3, z: 0 },
-                { x: 0, z: 0, height: 8 },
-                { x: 3, z: 0 },
-                { x: -3, z: 3 },
-                { x: 0, z: 3 },
-                { x: 3, z: 3 }
-            ];
-            
-            buildings.forEach(pos => {
-                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-                building.position.set(pos.x, (pos.height || 5) / 2, pos.z);
-                building.scale.y = (pos.height || 5) / 5;
-                building.castShadow = true;
-                building.receiveShadow = true;
-                scene.add(building);
-            });
-            
-            // Nehir
-            const riverGeometry = new THREE.PlaneGeometry(40, 5, 32);
-            const riverMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x4fc3f7,
-                roughness: 0.1,
-                metalness: 0.8,
-                transparent: true,
-                opacity: 0.7
-            });
-            const river = new THREE.Mesh(riverGeometry, riverMaterial);
-            river.rotation.x = -Math.PI / 2;
-            river.position.set(0, 0.1, 10);
-            scene.add(river);
-            
-            // Ağaçlar
-            const treeGeometry = new THREE.ConeGeometry(1, 3, 8);
-            const treeMaterial = new THREE.MeshStandardMaterial({ color: 0x2e7d32 });
-            
-            for(let i = 0; i < 20; i++) {
-                const tree = new THREE.Mesh(treeGeometry, treeMaterial);
-                const x = (Math.random() - 0.5) * 40;
-                const z = (Math.random() - 0.5) * 30;
-                tree.position.set(x, 1.5, z);
-                tree.castShadow = true;
-                scene.add(tree);
-            }
-            
-            // Animasyon döngüsü
-            function animate() {
-                requestAnimationFrame(animate);
-                
-                // Kamerayı yavaşça döndür
-                if (camera.position.x !== undefined) {
-                    camera.position.x = 20 * Math.sin(Date.now() * 0.0001);
-                    camera.lookAt(0, 0, 0);
-                }
-                
-                renderer.render(scene, camera);
-            }
-            
-            animate();
-            
-            // Pencere boyutu değiştiğinde
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
 
-        // Bakanlık kartlarını oluştur
-        function renderMinistries() {
-            ministryGrid.innerHTML = '';
-            
-            gameState.ministries.forEach(ministry => {
-                const card = document.createElement('div');
-                card.className = 'ministry-card';
-                card.innerHTML = `
-                    <div class="ministry-icon">
-                        <i class="${ministry.icon}"></i>
-                    </div>
-                    <div class="ministry-name">${ministry.name}</div>
-                    <div class="ministry-level">Seviye ${ministry.level}</div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    alert(`${ministry.name} Bakanlığını geliştirmek için ${ministry.level * 500} KRDC gerekiyor.`);
-                });
-                
-                ministryGrid.appendChild(card);
-            });
-        }
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 10;
+controls.maxDistance = 120;
+controls.maxPolarAngle = Math.PI * 0.48;
 
-        // Bağış öğelerini oluştur
-        function renderDonations() {
-            donationList.innerHTML = '';
-            
-            gameState.donations.forEach(donation => {
-                const item = document.createElement('div');
-                item.className = 'donation-item';
-                item.innerHTML = `
-                    <div class="donation-title">${donation.title}</div>
-                    <div class="donation-progress">
-                        <div class="progress-bar" style="width: ${donation.progress}%"></div>
-                    </div>
-                    <div style="font-size: 0.9rem; color: #b0bec5;">
-                        ${donation.progress}% tamamlandı - ${(donation.target * donation.progress / 100).toLocaleString()} KRDC / ${donation.target.toLocaleString()} KRDC
-                    </div>
-                    <button class="donate-btn" data-id="${donation.id}">
-                        <i class="fas fa-donate"></i> Bağış Yap (100 KRDC)
-                    </button>
-                `;
-                
-                donationList.appendChild(item);
-            });
-            
-            // Bağış butonlarına tıklama olayı ekle
-            document.querySelectorAll('.donate-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const donation = gameState.donations.find(d => d.id == id);
-                    if(donation) {
-                        gameState.balance -= 100;
-                        donation.progress = Math.min(donation.progress + 1, 100);
-                        updateUI();
-                        renderDonations();
-                        alert(`Teşekkürler! ${donation.title} projesine 100 KRDC bağış yaptınız.`);
-                    }
-                });
-            });
-        }
+// Zemin (yeşil yayla)
+const groundGeo = new THREE.PlaneGeometry(300, 300, 80, 80);
+const groundMat = new THREE.MeshStandardMaterial({ 
+  color: 0x2e8b57, 
+  roughness: 0.9, 
+  metalness: 0.05 
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.5;
+scene.add(ground);
 
-        // UI güncelleme
-        function updateUI() {
-            document.getElementById('balance').textContent = gameState.balance.toLocaleString('tr-TR') + ' KRDC';
-            document.getElementById('citizens').textContent = gameState.citizens.toLocaleString('tr-TR');
-            document.getElementById('level').textContent = 'Seviye ' + gameState.level;
-        }
+// Basit dağlar (örnek)
+for (let i = 0; i < 5; i++) {
+  const height = 12 + Math.random() * 18;
+  const mountain = new THREE.Mesh(
+    new THREE.ConeGeometry(15 + Math.random()*10, height, 6 + Math.floor(Math.random()*4)),
+    new THREE.MeshStandardMaterial({ color: 0x4a2c0d, roughness: 0.85 })
+  );
+  mountain.position.set(
+    (Math.random() - 0.5) * 120,
+    height/2 - 1,
+    (Math.random() - 0.5) * 100 - 30
+  );
+  scene.add(mountain);
+}
 
-        // Panel yönetimi
-        function showPanel(panel) {
-            // Tüm panelleri gizle
-            ministryPanel.style.display = 'none';
-            donationPanel.style.display = 'none';
-            
-            // Menü butonlarını güncelle
-            document.querySelectorAll('.menu-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // İstenen paneli göster
-            if (panel === 'ministry') {
-                ministryPanel.style.display = 'flex';
-                document.getElementById('btn-ministry').classList.add('active');
-                renderMinistries();
-            } else if (panel === 'donation') {
-                donationPanel.style.display = 'flex';
-                document.getElementById('btn-donation').classList.add('active');
-                renderDonations();
-            } else {
-                document.getElementById('btn-home').classList.add('active');
-            }
-        }
+// Işıklar
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const sun = new THREE.DirectionalLight(0xffe8c0, 1.2);
+sun.position.set(30, 60, 40);
+scene.add(sun);
 
-        // Olay dinleyicileri
-        document.addEventListener('DOMContentLoaded', function() {
-            // Yükleme ekranını gizle
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                initThreeJS();
-            }, 2000);
-            
-            // Menü butonları
-            document.getElementById('btn-home').addEventListener('click', () => showPanel('home'));
-            document.getElementById('btn-ministry').addEventListener('click', () => showPanel('ministry'));
-            document.getElementById('btn-donation').addEventListener('click', () => showPanel('donation'));
-            
-            document.getElementById('btn-wallet').addEventListener('click', () => {
-                alert('Cüzdan özelliği yakında eklenecek!');
-            });
-            
-            document.getElementById('btn-profile').addEventListener('click', () => {
-                alert('Profil özelliği yakında eklenecek!');
-            });
-            
-            // Kapatma butonları
-            document.getElementById('close-ministry').addEventListener('click', () => showPanel('home'));
-            document.getElementById('close-donation').addEventListener('click', () => showPanel('home'));
-            
-            // Harita kontrolleri
-            document.getElementById('zoom-in').addEventListener('click', () => {
-                camera.position.y = Math.max(camera.position.y - 2, 10);
-            });
-            
-            document.getElementById('zoom-out').addEventListener('click', () => {
-                camera.position.y = Math.min(camera.position.y + 2, 40);
-            });
-            
-            document.getElementById('rotate-view').addEventListener('click', () => {
-                // Kamerayı döndür
-                camera.position.x = 20 * Math.sin(Date.now() * 0.001);
-                camera.position.z = 20 * Math.cos(Date.now() * 0.001);
-                camera.lookAt(0, 0, 0);
-            });
-            
-            // Telegram MainButton tıklaması
-            tg.MainButton.onClick(() => {
-                gameState.balance += 500;
-                updateUI();
-                alert('500 KRDC alındı!');
-            });
-            
-            // UI'ı başlangıç durumuna getir
-            updateUI();
-            
-            // Dokunmatik kontroller
-            let touchStartY = 0;
-            let touchStartX = 0;
-            
-            document.getElementById('game-container').addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-                touchStartX = e.touches[0].clientX;
-            }, { passive: true });
-            
-            document.getElementById('game-container').addEventListener('touchmove', (e) => {
-                if (!touchStartY || !touchStartX) return;
-                
-                const touchY = e.touches[0].clientY;
-                const touchX = e.touches[0].clientX;
-                
-                const deltaY = touchStartY - touchY;
-                const deltaX = touchStartX - touchX;
-                
-                // Yatay kaydırma - kamerayı döndür
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    camera.position.x += deltaX * 0.05;
-                    camera.position.z -= deltaX * 0.05;
-                    camera.lookAt(0, 0, 0);
-                }
-                // Dikey kaydırma - zoom
-                else {
-                    camera.position.y = Math.max(Math.min(camera.position.y + deltaY * 0.1, 40), 10);
-                }
-                
-                touchStartY = touchY;
-                touchStartX = touchX;
-            }, { passive: true });
-        });
-    </script>
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+</script>
 </body>
 </html>
