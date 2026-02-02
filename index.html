@@ -1,240 +1,121 @@
 <!DOCTYPE html>
-<html lang="ku" dir="ltr">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <title>LKURD • Dijital Kurdistan</title>
-  
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.min.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>3D Pixel Land</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body {
-      height:100%;
-      width:100%;
-      overflow:hidden;
-      background:#04100a;
-      touch-action: manipulation;
-    }
-
-    #app {
-      height:100vh;
-      width:100vw;
-      position:relative;
-    }
-
-    #three-container {
-      position: absolute;
-      inset: 0;
-      background: #0a1f12;
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
       overflow: hidden;
+      background: #000;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    #three-canvas {
-      position: absolute;
-      inset: 0;
+    #scene {
       width: 100%;
       height: 100%;
-      display: block;
+      perspective: 800px;
+      transform-style: preserve-3d;
+      position: relative;
     }
 
-    .safe-top {
-      height: 110px;           /* Üst boşluk biraz daha azaltıldı, ama hala güvenli */
+    .ground {
+      position: absolute;
       width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #0a2f1a, #1a5c2e);
+      transform: rotateX(60deg) translateZ(-200px);
+    }
+
+    .pixel-land {
       position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 5;
-      pointer-events: none;
-      background: linear-gradient(to bottom, rgba(4,16,10,0.9), transparent);
+      top: 50%;
+      left: 50%;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) rotateX(55deg) rotateY(35deg) scale(0.9);
     }
 
-    .overlay {
+    .voxel {
       position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 120px 12px 20px;
-      z-index: 3;
+      width: 20px;
+      height: 20px;
+      transform-style: preserve-3d;
+      transform-origin: 50% 50% -10px;
     }
 
-    .top-info {
-      background: rgba(10,31,18,0.75);
-      backdrop-filter: blur(10px);
-      color: #ffd700;
-      padding: 10px 16px;
-      border-radius: 12px;
-      width: fit-content;
-      align-self: center;
-      border: 1px solid #d4af37;
-      font-size: 0.95rem;
-      font-weight: 600;
-      pointer-events: auto;
+    .face {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #444;
+      border: 1px solid #222;
+      box-sizing: border-box;
     }
 
-    .bottom-bar {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      pointer-events: auto;
-    }
+    .top    { transform: translateZ(10px);  background: #8bc34a; border-color: #6b9e3a; }
+    .front  { transform: rotateX(-90deg) translateZ(10px); background: #689f38; border-color: #4c7f1f; }
+    .right  { transform: rotateY( 90deg) translateZ(10px); background: #558b2f; border-color: #33691e; }
+    .back   { transform: rotateX( 90deg) translateZ(10px); background: #558b2f; border-color: #33691e; }
+    .left   { transform: rotateY(-90deg) translateZ(10px); background: #689f38; border-color: #4c7f1f; }
+    .bottom { transform: translateZ(-10px);  background: #33691e; border-color: #1b5e20; }
 
-    .action-btn {
-      background: linear-gradient(145deg, #1a3c2a, #0f251a);
-      border: 2px solid #d4af37;
-      color: #d4af37;
-      padding: 14px 28px;
-      border-radius: 999px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 15px rgba(212,175,55,0.2);
-    }
-
-    .action-btn:active {
-      transform: scale(0.96);
-      background: #2e8b57;
-      color: white;
-    }
-
-    @media (max-width: 400px) {
-      .action-btn { padding: 12px 24px; font-size: 0.92rem; }
-    }
+    /* Hafif gölge efekti */
+    .voxel:hover .top { filter: brightness(1.2); }
   </style>
 </head>
 <body>
 
-<div id="app">
-  <div class="safe-top"></div>
+<div id="scene">
+  <div class="ground"></div>
 
-  <div id="three-container">
-    <canvas id="three-canvas"></canvas>
-  </div>
+  <div class="pixel-land">
 
-  <div class="overlay">
-    <div class="top-info">
-      K 3.120.000 • Seviye 10 • Dijital Kurdistan
-    </div>
+    <!-- Senin haritana benzer kaba bir şekil (düzensiz, doğu-batı uzantılı) -->
+    <!-- Her satır ≈ 1 yükseklik katmanı temsil ediyor -->
 
-    <div class="bottom-bar">
-      <button class="action-btn">Yatırım Yap</button>
-      <button class="action-btn">Bina Seç</button>
-      <button class="action-btn">Keşfet</button>
-    </div>
+    <!-- Katman 1 (en alt) -->
+    <div class="voxel" style="transform: translate3d(-140px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-120px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-100px,  80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-80px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-60px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+
+    <!-- Katman 2 -->
+    <div class="voxel" style="transform: translate3d(-130px,  60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-110px,  60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-90px,   60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-70px,   60px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+
+    <!-- Katman 3 (tepe kısımlar) -->
+    <div class="voxel" style="transform: translate3d(-120px,  40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-100px,  40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-80px,   40px,  40px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+
+    <!-- Sağ taraf çıkıntı (senin haritadaki doğu kısmı gibi) -->
+    <div class="voxel" style="transform: translate3d(-40px,   70px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(-20px,   70px,  20px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+    <div class="voxel" style="transform: translate3d(  0px,   80px,   0px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+
+    <!-- Küçük tepe -->
+    <div class="voxel" style="transform: translate3d(-90px,   20px,  60px);"><div class="face top"></div><div class="face front"></div><div class="face right"></div><div class="face back"></div><div class="face left"></div><div class="face bottom"></div></div>
+
   </div>
 </div>
 
 <script>
-// Telegram'ı maksimum zorla
-if (window.Telegram?.WebApp) {
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  tg.expand();
-  tg.requestFullscreen?.();
-  tg.setBackgroundColor('#04100a');
-  tg.setHeaderColor('bg_color');
-}
-
-// Three.js setup
-const container = document.getElementById('three-container');
-const canvas = document.getElementById('three-canvas');
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a1f12);
-scene.fog = new THREE.FogExp2(0x0a1f12, 0.0008);
-
-const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 2000);
-camera.position.set(0, 40, 70);
-
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
-
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.minDistance = 15;
-controls.maxDistance = 160;
-controls.maxPolarAngle = Math.PI * 0.45;
-
-// Zemin
-const groundGeo = new THREE.PlaneGeometry(400, 600, 80, 120);
-groundGeo.rotateX(-Math.PI / 2);
-const groundMat = new THREE.MeshStandardMaterial({ color: 0x356b45, roughness: 0.9 });
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.receiveShadow = true;
-scene.add(ground);
-
-// Tepeler
-for (let i = 0; i < 8; i++) {
-  const hill = new THREE.Mesh(
-    new THREE.ConeGeometry(20 + Math.random()*20, 25 + Math.random()*30, 7),
-    new THREE.MeshStandardMaterial({ color: 0x5a3f1e, roughness: 0.9 })
-  );
-  hill.position.set((Math.random()-0.5)*300, 0, (Math.random()-0.5)*500 -100);
-  hill.castShadow = true;
-  scene.add(hill);
-}
-
-// Bakanlık binaları (daha görünür olsun)
-function addBuilding(x, z, color, height = 25) {
-  const group = new THREE.Group();
-  const base = new THREE.Mesh(
-    new THREE.BoxGeometry(18, height, 18),
-    new THREE.MeshStandardMaterial({ color, metalness: 0.1, roughness: 0.5 })
-  );
-  base.position.y = height/2;
-  base.castShadow = true;
-  group.add(base);
-
-  const roof = new THREE.Mesh(
-    new THREE.ConeGeometry(12, 15, 6),
-    new THREE.MeshStandardMaterial({ color: 0xd4af37 })
-  );
-  roof.position.y = height + 7.5;
-  group.add(roof);
-
-  group.position.set(x, 0, z);
-  scene.add(group);
-}
-
-addBuilding(-80, -120, 0x2e8b57); // Yeşil - Ekonomi
-addBuilding(60, -60, 0xb22222);   // Kırmızı - Kültür
-addBuilding(0, 100, 0x4169e1);    // Mavi - Eğitim
-addBuilding(-50, 80, 0x4b0082);   // Mor - Savunma
-
-// Işıklar (daha parlak)
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-const dirLight = new THREE.DirectionalLight(0xfff5d0, 1.8);
-dirLight.position.set(100, 150, 120);
-dirLight.castShadow = true;
-scene.add(dirLight);
-
-// Resize fonksiyonu – çok önemli!
-function onResize() {
-  const w = container.clientWidth;
-  const h = container.clientHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-}
-window.addEventListener('resize', onResize);
-onResize(); // İlk çağrı
-
-// Animate loop
+// Çok hafif otomatik rotasyon (isteğe bağlı – kapatmak istersen sil)
+let angleY = 35;
 function animate() {
+  angleY += 0.15;
+  document.querySelector('.pixel-land').style.transform = 
+    `translate(-50%, -50%) rotateX(55deg) rotateY(${angleY}deg) scale(0.9)`;
   requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
 }
-animate();
-
+// animate();   // ← otomatik döndürmeyi açmak istersen bu satırı uncomment yap
 </script>
+
 </body>
 </html>
