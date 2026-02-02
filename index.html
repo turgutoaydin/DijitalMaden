@@ -2,7 +2,7 @@
 <html lang="ku" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>LKURD • Dijital Kurdistan</title>
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -10,246 +10,228 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.min.js"></script>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body, html {
-      height: 100%;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a1f12;
-      color: #e0e0e0;
-      overflow: hidden;
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height:100%;
+      width:100%;
+      overflow:hidden;
+      background:#04100a;
+      font-family: system-ui, sans-serif;
       touch-action: manipulation;
     }
 
-    /* Telegram tema entegrasyonu */
-    :root {
-      --tg-bg: var(--tg-theme-bg-color, #0a1f12);
-      --tg-text: var(--tg-theme-text-color, #e0e0e0);
-      --tg-accent: var(--tg-theme-button-color, #2e8b57);
-      --gold: #d4af37;
-      --green: #2e8b57;
-      --dark: #04100a;
-    }
-
     #app {
-      height: 100vh;
-      width: 100vw;
-      display: flex;
-      flex-direction: column;
-      background: linear-gradient(to bottom, var(--dark), var(--tg-bg));
-    }
-
-    header {
-      padding: 12px 16px;
-      background: rgba(10, 31, 18, 0.85);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(212, 175, 55, 0.18);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 10;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--gold);
-      letter-spacing: 1px;
-    }
-
-    .logo span {
-      color: var(--green);
-    }
-
-    nav {
-      display: flex;
-      gap: 10px;
-    }
-
-    .nav-btn {
-      background: rgba(46, 139, 87, 0.25);
-      border: 1px solid var(--green);
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .nav-btn:hover,
-    .nav-btn.active {
-      background: var(--green);
-      box-shadow: 0 0 12px rgba(46, 139, 87, 0.6);
+      height:100vh;
+      width:100vw;
+      position:relative;
     }
 
     #three-container {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
+      position:absolute;
+      inset:0;
+      background:#0a1f12;
     }
 
     #three-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      width:100%;
+      height:100%;
+      display:block;
+    }
+
+    .safe-area-top {
+      height: 140px;           /* iPhone status + Telegram X butonu için güvenli üst boşluk */
+      width:100%;
+      position:absolute;
+      top:0;
+      left:0;
+      z-index:5;
+      pointer-events:none;
+      background: linear-gradient(to bottom, rgba(4,16,10,0.92), transparent);
     }
 
     .overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 16px;
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      padding: 160px 16px 16px;  /* üst boşluk + alt padding */
+      z-index:3;
     }
 
     .top-info {
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(8px);
-      padding: 10px 14px;
+      background: rgba(10,31,18,0.65);
+      backdrop-filter: blur(12px);
+      color: #d4af37;
+      padding: 10px 16px;
       border-radius: 12px;
       width: fit-content;
       align-self: center;
-      border: 1px solid rgba(212, 175, 55, 0.3);
+      border: 1px solid rgba(212,175,55,0.35);
+      font-size: 0.95rem;
+      font-weight: 600;
+      pointer-events:auto;
     }
 
     .bottom-bar {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      pointer-events: auto;
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      pointer-events:auto;
     }
 
     .action-btn {
       background: linear-gradient(145deg, #1a3c2a, #0f251a);
-      border: 2px solid var(--gold);
-      color: var(--gold);
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s;
-      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+      border: 2px solid #d4af37;
+      color: #d4af37;
+      padding: 14px 26px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor:pointer;
+      transition: all 0.22s;
+      box-shadow: 0 6px 20px rgba(212,175,55,0.18);
     }
 
     .action-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
-      background: linear-gradient(145deg, #2e8b57, #1f5c3b);
+      transform: translateY(-4px) scale(1.04);
+      background: #2e8b57;
       color: white;
+      box-shadow: 0 12px 30px rgba(46,139,87,0.45);
     }
 
-    .action-btn.gold {
-      border-color: var(--gold);
-      color: var(--gold);
-    }
-
-    @media (max-width: 500px) {
-      .action-btn { padding: 12px 20px; font-size: 0.95rem; }
+    @media (max-width: 420px) {
+      .action-btn { padding: 12px 20px; font-size: 0.92rem; }
     }
   </style>
 </head>
 <body>
 
 <div id="app">
-  <header>
-    <div class="logo">LKURD <span>Dijital Kurdistan</span></div>
-    <nav>
-      <button class="nav-btn active">Bakanlıklar</button>
-      <button class="nav-btn">Topraklar</button>
-      <button class="nav-btn">Pazar</button>
-    </nav>
-  </header>
+  <div class="safe-area-top"></div>
 
   <div id="three-container">
     <canvas id="three-canvas"></canvas>
+  </div>
 
-    <div class="overlay">
-      <div class="top-info">
-        Bakiyen: 1.240.000 ₭ | Seviye: 7 • Welatparêz
-      </div>
+  <div class="overlay">
+    <div class="top-info">
+      Bakiye: 2.840.000 ₭  •  Seviye: 9  •  Welat: Güney Kurdistan
+    </div>
 
-      <div class="bottom-bar">
-        <button class="action-btn">Bakanlığa Yatırım Yap</button>
-        <button class="action-btn gold">Yeni Bölge İnşa Et</button>
-        <button class="action-btn">Kültürel Etkinlik</button>
-      </div>
+    <div class="bottom-bar">
+      <button class="action-btn">Bakanlığa Yatırım</button>
+      <button class="action-btn">Bina İnşa Et</button>
+      <button class="action-btn">Haritayı Keşfet</button>
     </div>
   </div>
 </div>
 
 <script>
-// Telegram Mini App başlatma
+// Telegram full-screen optimizasyonu
 if (window.Telegram?.WebApp) {
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
   if (tg.requestFullscreen) tg.requestFullscreen();
-  tg.MainButton.setText("LKURD Menü").show();
-  tg.MainButton.onClick(() => alert("Ana menüye hoş geldin!"));
+  tg.setBackgroundColor('#04100a');
+  tg.setHeaderColor('bg_color');
 }
 
-// Basit Three.js sahne (daha sonra geliştirilecek)
+// Three.js – Oyun haritası tarzı sahne
 const canvas = document.getElementById('three-canvas');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x04100a);
+scene.background = new THREE.Color(0x0a1f12);
+scene.fog = new THREE.FogExp2(0x0a1f12, 0.0009);
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-camera.position.set(0, 15, 40);
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 2000);
+camera.position.set(0, 45, 70);  // Yukarıdan bakış – strategy map gibi
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(window.devicePixelRatio * 1.1);
+renderer.shadowMap.enabled = true;
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.minDistance = 10;
-controls.maxDistance = 120;
-controls.maxPolarAngle = Math.PI * 0.48;
+controls.dampingFactor = 0.07;
+controls.minDistance = 20;
+controls.maxDistance = 180;
+controls.maxPolarAngle = Math.PI * 0.45;   // Çok aşağı bakmasın
+controls.enablePan = true;
 
-// Zemin (yeşil yayla)
-const groundGeo = new THREE.PlaneGeometry(300, 300, 80, 80);
+// Zemin – yeşil terrain
+const groundGeo = new THREE.PlaneGeometry(400, 400, 120, 120);
+groundGeo.rotateX(-Math.PI / 2);
 const groundMat = new THREE.MeshStandardMaterial({ 
-  color: 0x2e8b57, 
-  roughness: 0.9, 
-  metalness: 0.05 
+  color: 0x3a6b45, 
+  roughness: 0.92, 
+  metalness: 0.04 
 });
 const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.5;
+ground.receiveShadow = true;
 scene.add(ground);
 
-// Basit dağlar (örnek)
-for (let i = 0; i < 5; i++) {
-  const height = 12 + Math.random() * 18;
-  const mountain = new THREE.Mesh(
-    new THREE.ConeGeometry(15 + Math.random()*10, height, 6 + Math.floor(Math.random()*4)),
-    new THREE.MeshStandardMaterial({ color: 0x4a2c0d, roughness: 0.85 })
+// Basit dağlar / tepeler
+for (let i = 0; i < 12; i++) {
+  const size = 18 + Math.random() * 28;
+  const height = 18 + Math.random() * 35;
+  const hill = new THREE.Mesh(
+    new THREE.ConeGeometry(size, height, 7 + Math.floor(Math.random()*5)),
+    new THREE.MeshStandardMaterial({ color: 0x5a3f1e, roughness: 0.88 })
   );
-  mountain.position.set(
-    (Math.random() - 0.5) * 120,
-    height/2 - 1,
-    (Math.random() - 0.5) * 100 - 30
+  hill.position.set(
+    (Math.random() - 0.5) * 280,
+    height * 0.5,
+    (Math.random() - 0.5) * 220 - 40
   );
-  scene.add(mountain);
+  hill.castShadow = true;
+  scene.add(hill);
 }
 
-// Işıklar
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-const sun = new THREE.DirectionalLight(0xffe8c0, 1.2);
-sun.position.set(30, 60, 40);
-scene.add(sun);
+// Örnek Bakanlık Binaları (placeholder – ileride glTF ile gerçek model olur)
+function createBuilding(x, z, color, scale = 1) {
+  const group = new THREE.Group();
+  
+  // Ana bina
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(12 * scale, 18 * scale, 12 * scale),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.2 })
+  );
+  base.position.y = 9 * scale;
+  base.castShadow = true;
+  group.add(base);
 
-// Resize handler
+  // Kubbe / minare benzeri
+  const top = new THREE.Mesh(
+    new THREE.ConeGeometry(8 * scale, 14 * scale, 6),
+    new THREE.MeshStandardMaterial({ color: 0xd4af37, emissive: 0x442200, emissiveIntensity: 0.15 })
+  );
+  top.position.y = 18 * scale + 7 * scale;
+  group.add(top);
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+}
+
+// Birkaç bakanlık örneği yerleştir
+createBuilding(-40, -30, 0x2e8b57, 1.3);   // Ekonomi Bakanlığı
+createBuilding( 50, -10, 0x8b0000, 1.1);   // Kültür Bakanlığı
+createBuilding(  0,  60, 0x4682b4, 1.4);   // Eğitim Bakanlığı
+createBuilding(-80,  40, 0x4b0082, 1.0);   // Savunma
+
+// Işıklar
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const dirLight = new THREE.DirectionalLight(0xffe8c0, 1.4);
+dirLight.position.set(60, 120, 80);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+scene.add(dirLight);
+
+// Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
